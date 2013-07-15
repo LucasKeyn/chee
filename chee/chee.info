@@ -1,0 +1,7 @@
+name = Chee
+description = Code Highlight for EpicEditor.
+package = "Chee"
+core = 7.x
+configure = admin/config/user-interface/chee
+scripts[] = js/highlight.pack.js
+scripts[] = js/chee.js

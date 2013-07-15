@@ -1,0 +1,143 @@
+<?php
+
+/*
+Themes:
+dark
+far
+idea
+sunburst
+zenburn
+vs
+ascetic
+magula
+github
+googlecode
+brown_paper
+school_book
+ir_black
+solarized_dark
+solarized_light
+arta
+monokai
+xcode
+pojoaque
+rainbow
+tomorrow
+tomorrow-night
+tomorrow-night-bright
+tomorrow-night-blue
+tomorrow-night-eighties
+*/
+
+/**
+ * Implements hook_init().
+ */
+function chee_init() {
+  $path = drupal_get_path('module', 'chee');
+
+  $front = variable_get('chee_front_theme', 'default');
+  $cheepath = $path . "/styles/$front.css";
+
+  $setting = array(
+    'cheePath' => $path,
+    'cheeFrontTheme' => $front,
+    'cheeBackTheme' => variable_get('chee_back_theme', 'default'),
+    'cheeLineBreaks' => variable_get('chee_linebreaks', TRUE),
+    'cheeTabReplace' => variable_get('chee_tab_replace', '  '),
+  );
+
+  drupal_add_css($cheepath);
+
+  drupal_add_js($setting, 'setting');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function chee_menu() {
+  $items['admin/config/user-interface/chee'] = array(
+    'title' => 'Chee Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('chee_settings_form'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['mapmap'] = array(
+    'title' => 'Map',
+    'page callback' => 'pmi_map',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function pmi_map() {
+  return '<iframe src="http://local.pfizer.medinfo:8080/map" width="100%" height="530px"></iframe>';
+}
+
+
+/**
+ * Settings form
+ */
+function chee_settings_form($form, $form_state) {
+  $form = array();
+
+  $options = chee_list_themes();
+
+  $form['code-highlight'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Code highlight theme',
+  );
+
+  $form['code-highlight']['chee_front_theme'] = array(
+    '#type' => 'select',
+    '#title' => 'Front-end',
+    '#options' => $options,
+    '#default_value' => variable_get('chee_front_theme', 'default'),
+  );
+
+  $form['code-highlight']['chee_back_theme'] = array(
+    '#type' => 'select',
+    '#title' => 'Back-end',
+    '#options' => $options,
+    '#default_value' => variable_get('chee-back-theme', 'tomorrow-night-eighties'),
+  );
+
+  $form['chee_linebreaks'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Line Breaks',
+    '#description' => 'If your code container relies on `&lt;br&gt;` tags instead of line breaks check this option to make Chee use `&lt;br&gt;` in the output',
+    '#default_value' => variable_get('chee-linebreaks', TRUE),
+  );
+
+  $form['chee_tab_replace'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Replace TAB characters',
+    '#description' => 'You can replace TAB (\'\x09\') characters used for indentation in your code with some fixed number of spaces or with a `&lt;span&gt;` to give them special styling',
+    '#default_value' => variable_get('chee_tab_replace', '  '),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * List the available themes.
+ */
+function chee_list_themes() {
+  static $themes;
+
+  if (isset($themes)) {
+    return $themes;
+  }
+  $themes = array();
+  $directory = drupal_get_path('module', 'chee') . '/styles/';
+  if (!empty($directory)) {
+    $files = file_scan_directory($directory, '/.*\.css$/', array('key' => 'name'));
+    foreach ($files as $key => $fileinfo) {
+      $themes[drupal_strtolower($key)] = drupal_ucfirst($key);
+    }
+    natcasesort($themes);
+  }
+
+  return $themes;
+}
